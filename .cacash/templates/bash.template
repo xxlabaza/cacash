@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+
+#:doc: Place the script usage, options description, and examples
+#:doc: in the function below. Use the provided sample as a
+#:doc: template and a good starting point.
+function usage () {
+  cat << USAGEOUT
+
+Usage: ${SCRIPT_NAME} [OPTIONS] [--] [POSITIONAL_ARGUMENTS]
+
+OPTIONS:
+  -h,--help             show this help message and exit
+
+USAGEOUT
+}
+
+#:doc: The arguments parsers (if you didn't remove its inclusion below) uses
+#:doc: that function to recognize the passed flags and options to your script.
+#:doc: Feel free to add more options here (see the README.md for examples).
+function parse_option () {
+  local readonly option="${1}"
+  case "${option}" in
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    -*|*)
+      return 1 # unknown option
+      ;;
+  esac
+  return 0
+}
+
+#:doc: This's an entry point of your program. Place your business-logic
+#:doc: (ha-ha! "business" and "logic" in a shell script!) here.
+function main () {
+  local readonly arguments=( ${@+"${@}"} ) # a hack to use empty arrays with `set -o nounset`
+  local readonly arguments_count=${#arguments[*]}
+  info "Hello world"
+  # TODO: make something awesome
+}
+
+#:doc: The finalization section of your script. The place for tasks that need
+#:doc: to be done before the script ends (e.g. removing temporary files, etc.).
+#:doc: The exit status of the script is the status of the last statement before
+#:doc: the finalize function.
+function finalize () {
+  local previous_command_exit_status_code=$?
+  # your cleanup code here
+  exit ${previous_command_exit_status_code}
+}
+
+
+
+################################################
+# BEWARE: THE CACASH INTERNALS UNDER THIS LINE #
+################################################
+
+#:doc: The rest code below - belongs to the CaCaSH internal stuff.
+#:doc: You can enable/disable some includes or even try to hack something there,
+#:doc: but typically you don't have to touch anything below.
+
+#:doc: Define the "exit trap" for the script. When your script ends with error
+#:doc: or success - the function "finalize" always calls at the end of it.
+trap finalize EXIT ERR
+
+# Global variables:
+#:doc: The default global helper variables for the script.
+readonly SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+readonly SCRIPT_NAME=$( basename "${0}" )
+
+# Essential flags:
+#:doc: This is the set of flags that may help to increase the robustness and
+#:doc: strictness of your script.
+#:doc: You can also add "set -o xtrace" here to print a trace of the commands.
+#:doc: It may help debug the script.
+source "${SCRIPT_DIR}/.cacash/includes/flags.sh"
+# set -o xtrace
+
+# The logging:
+#:doc: The include adds the logging functions like: "info", "warn" and "error".
+#:doc: Usage:
+#:doc: info "Hello world"
+#:doc: Output:
+#:doc: [2021-08-22 21:33:13]  INFO: Hello world
+source "${SCRIPT_DIR}/.cacash/includes/logging.sh"
+
+# Arguments parsing:
+#:doc: Provides the necessary functions for the script's arguments parsing.
+#:doc: For example, the options parsing a script creator define above
+#:doc: (see the "parse_option" function template), which uses in the arguments
+#:doc: parsing process.
+source "${SCRIPT_DIR}/.cacash/includes/parsing_arguments.sh"
+
+# Let's start the shell scripting magic!
+main ${POSITIONAL_ARGUMENTS[@]+"${POSITIONAL_ARGUMENTS[@]}"}
