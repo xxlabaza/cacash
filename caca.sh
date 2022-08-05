@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
-SOURCE_FILE_NAME="source.sh"
-TARGET_FILE_NAME="target.sh"
+SOURCE_FILE_NAME=""
+TARGET_FILE_NAME=""
 
 #:doc: Place the script usage, options description, and examples
 #:doc: in the function below. Use the provided sample as a
@@ -18,13 +18,15 @@ OPTIONS:
   -h,--help             show this help message and exit
   -v,--verbose          increase the verbosity of the bash script
   -f,--forced           forces the questions to "yes", during the commands run
+  -s,--source           specify build source file
+  -t,--target           specify build target file
 
 COMMANDS
-  new [shell_type]      creates a new '${SOURCE_FILE_NAME}' file from a template
+  new [shell_type]      creates a new 'source.sh' file from a template
                         defined by "shell_type". The supported values for the
                         "shell_type" are "sh" and "bash". Default is "sh".
 
-  build                 build a '${TARGET_FILE_NAME}' file from the '${SOURCE_FILE_NAME}'
+  build                 build a 'target.sh' file from the 'source.sh'
 
 USAGEOUT
 }
@@ -42,6 +44,14 @@ function parse_option () {
       ;;
     -f|--forced)
       FORCE_FLAG="true"
+      ;;
+    -s|--source)
+      shift_argument
+      SOURCE_FILE_NAME=$( get_current_argument )
+      ;;
+    -t|--target)
+      shift_argument
+      TARGET_FILE_NAME=$( get_current_argument )
       ;;
     -*|*)
       return 1 # unknown option
@@ -95,7 +105,12 @@ function process_new () {
     exit 1
   fi
 
-  local readonly destination_file="./${SOURCE_FILE_NAME}"
+  if [ -f "${SOURCE_FILE_NAME}" ]; then
+    local readonly destination_file=`readlink -f "${SOURCE_FILE_NAME}"`
+  else
+    local readonly destination_file=`readlink -f "./source.sh"`
+  fi
+
   if [ -f "${destination_file}" ] && [ "${FORCE_FLAG}" = "false" ]; then
     printf "Overwrite script ${destination_file} (y/n)?: "
     read overwrite
@@ -119,16 +134,30 @@ function process_build () {
     exit 1
   fi
 
-  local readonly source_file="./${SOURCE_FILE_NAME}"
+  if [ -f "${SOURCE_FILE_NAME}" ]; then
+    local readonly source_file=`readlink -f "${SOURCE_FILE_NAME}"`
+  else
+    local readonly source_file=`readlink -f "./source.sh"`
+  fi
   if [ ! -f "${source_file}" ]; then
     error "there is no file ${source_file}"
     exit 1
   fi
 
   local readonly templater="${SCRIPT_DIR}/.cacash/src/templater.awk"
-  local readonly destination_file="./${TARGET_FILE_NAME}"
 
-  awk -f "${templater}" "${source_file}" > "${destination_file}"
+  if [ -f "${TARGET_FILE_NAME}" ]; then
+    touch "${TARGET_FILE_NAME}"
+    local readonly destination_file=`readlink -f "${TARGET_FILE_NAME}"`
+  else
+    local readonly destination_file=`readlink -f "target.sh"`
+  fi
+
+  awk \
+    -v SCRIPT_ROOT_DIR="${SCRIPT_DIR}" \
+    -f "${templater}" \
+    "${source_file}" > "${destination_file}"
+
   chmod +x "${destination_file}"
   info "built the script ${destination_file}"
 }
