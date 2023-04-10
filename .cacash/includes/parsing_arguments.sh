@@ -79,9 +79,13 @@ function __parse_arguments () {
         end_of_options_flag="<EOO_FLAG>"
         ;;
       -*)
-        error "unknown argument - '${argument}'"
-        usage >&2
-        exit 1
+        if [ "${return_status}" == 2 ]; then
+          POSITIONAL_ARGUMENTS+=( "${argument}" )
+        else
+          error "unknown argument - '${argument}'"
+          usage >&2
+          exit 1
+        fi
         ;;
       *)
         POSITIONAL_ARGUMENTS+=( "${argument}" )

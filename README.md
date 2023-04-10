@@ -151,6 +151,7 @@ function parse_option () {
       ;;
     -*|*)
       return 1 # unknown option
+      # return 2 # add to arguments
       ;;
   esac
   return 0
@@ -161,6 +162,7 @@ function parse_option () {
 > ```bash
 > -*|*)
 >   return 1 # unknown option
+>   # return 2 # add to arguments
 >   ;;
 > ```
 
@@ -204,6 +206,7 @@ function parse_option () {
       ;;
     -*|*)
       return 1 # unknown option
+      # return 2 # add to arguments
       ;;
   esac
   return 0
@@ -278,6 +281,7 @@ function parse_option () {
       ;;
     -*|*)
       return -1 # unknown option
+      # return 2 # add to arguments
       ;;
   esac
   return 0

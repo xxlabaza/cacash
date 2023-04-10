@@ -55,6 +55,7 @@ function parse_option () {
       ;;
     -*|*)
       return 1 # unknown option
+      # return 2 # add to arguments
       ;;
   esac
   return 0
